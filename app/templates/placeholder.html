@@ -1,0 +1,43 @@
+
+{% extends "base.html" %}
+
+{% block title %}
+{{ page_title }} | CampusNotice
+{% endblock %}
+
+{% block page_heading %}
+{{ page_title }}
+{% endblock %}
+
+{% block content %}
+
+<section class="page-intro">
+
+    <div class="eyebrow">CAMPUSNOTICE WORKSPACE</div>
+
+    <h1>{{ page_title }}</h1>
+
+    <p>{{ page_description }}</p>
+
+</section>
+
+
+<section class="panel placeholder-panel">
+
+    <div class="placeholder-icon">✦</div>
+
+    <h2>功能正在开发中</h2>
+
+    <p>
+        页面入口已经建立，
+        相关功能将在后续开发阶段逐步完善。
+    </p>
+
+    <a href="{{ url_for('index') }}"
+       class="btn btn-primary">
+        返回首页
+    </a>
+
+</section>
+
+{% endblock %}
