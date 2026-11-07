@@ -8,6 +8,7 @@ from flask import (
 )
 
 from .services.database import get_db, close_db, init_db
+from .services.notice_parser import extract_document_text, parse_notice_text
 
 
 def save_deadlines(db, notice_id, old_status=None):
@@ -49,6 +50,7 @@ def create_app():
     app = Flask(__name__)
 
     app.config["SECRET_KEY"] = "campusnotice-local-demo-key"
+    app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 单个上传文件最大 10 MB
 
     os.makedirs(app.instance_path, exist_ok=True)
 
@@ -320,15 +322,131 @@ def create_app():
 
         return redirect(url_for("notices_page"))
 
-    # 通知导入页面（下一阶段开发）
-    @app.route("/import")
+    # 智能通知导入：上传文件并提取候选信息
+    @app.route("/import", methods=["GET", "POST"])
     def import_page():
+        if request.method == "GET":
+            return render_template("import.html", active_page="import")
+
+        uploaded_file = request.files.get("notice_file")
+        if uploaded_file is None or not uploaded_file.filename:
+            flash("请先选择一个 PDF、DOCX 或 TXT 文件。", "error")
+            return redirect(url_for("import_page"))
+
+        try:
+            text = extract_document_text(uploaded_file)
+            notice_data = parse_notice_text(text)
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return redirect(url_for("import_page"))
+
         return render_template(
-            "placeholder.html",
+            "import_preview.html",
             active_page="import",
-            page_title="通知导入",
-            page_description="上传校园通知文件，提取重要信息和截止日期。"
+            notice=notice_data,
+            source_filename=uploaded_file.filename
         )
+
+    # 确认识别结果并保存到现有 SQLite 数据库
+    @app.route("/import/confirm", methods=["POST"])
+    def confirm_import():
+        title = request.form.get("title", "").strip()
+        category = request.form.get("category", "其他").strip()
+        publisher = request.form.get("publisher", "").strip()
+        content = request.form.get("content", "").strip()
+
+        allowed_categories = {"活动", "竞赛", "学习", "奖助", "就业", "其他"}
+        if category not in allowed_categories:
+            category = "其他"
+
+        labels = request.form.getlist("deadline_label[]")
+        dates = request.form.getlist("deadline_date[]")
+        notes = request.form.getlist("deadline_note[]")
+
+        deadline_rows = []
+        invalid_date = False
+
+        for label, deadline_date, note in zip(labels, dates, notes):
+            label = label.strip() or "截止事项"
+            deadline_date = deadline_date.strip()
+            note = note.strip()
+
+            if not deadline_date:
+                continue
+
+            try:
+                datetime.strptime(deadline_date, "%Y-%m-%d")
+            except ValueError:
+                invalid_date = True
+
+            deadline_rows.append({
+                "label": label,
+                "deadline_date": deadline_date,
+                "note": note
+            })
+
+        notice_data = {
+            "title": title,
+            "category": category,
+            "publisher": publisher,
+            "content": content,
+            "deadlines": deadline_rows
+        }
+
+        if not title or not content:
+            flash("通知标题和正文不能为空，请检查后再保存。", "error")
+            return render_template(
+                "import_preview.html",
+                active_page="import",
+                notice=notice_data,
+                source_filename="当前编辑内容"
+            )
+
+        if invalid_date:
+            flash("日期格式不正确，请使用 YYYY-MM-DD 格式。", "error")
+            return render_template(
+                "import_preview.html",
+                active_page="import",
+                notice=notice_data,
+                source_filename="当前编辑内容"
+            )
+
+        db = get_db()
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        try:
+            cursor = db.execute("""
+                INSERT INTO notices
+                (title, category, publisher, content, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (title, category, publisher, content, now, now))
+
+            notice_id = cursor.lastrowid
+
+            for item in deadline_rows:
+                db.execute("""
+                    INSERT INTO notice_deadlines
+                    (notice_id, label, deadline_date, status, note)
+                    VALUES (?, ?, ?, 0, ?)
+                """, (
+                    notice_id,
+                    item["label"],
+                    item["deadline_date"],
+                    item["note"]
+                ))
+
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+
+        flash("通知文件导入成功，已保存到通知管理。", "success")
+        return redirect(url_for("notices_page"))
+
+    @app.errorhandler(413)
+    def file_too_large(error):
+        flash("文件超过 10 MB，请压缩文件或选择较小的文件。", "error")
+        return redirect(url_for("import_page"))
 
     # 截止日历页面（下一阶段开发）
     @app.route("/calendar")
