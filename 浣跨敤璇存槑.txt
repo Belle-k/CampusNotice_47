@@ -1,0 +1,13 @@
+CampusNotice 日历与统计模块更新包
+
+使用方法：
+1. 在 VS Code 终端中按 Ctrl+C，停止正在运行的 Flask 服务。
+2. 将压缩包中的 app 文件夹解压到 CampusNotice_47 项目根目录。
+3. 如果 Windows 询问是否覆盖文件，选择“替换目标中的文件”。
+4. 重新运行 python run.py。
+5. 浏览器分别访问 http://127.0.0.1:5000/calendar 和 http://127.0.0.1:5000/statistics。
+
+本更新会替换 app/__init__.py 和 app/static/css/style.css，并新增两个模板：
+app/templates/calendar.html、app/templates/statistics.html。
+不会删除或重建 instance/campusnotice.db，不会清空已有通知数据。
+日历事项点击后可切换完成状态；统计页面直接读取现有 SQLite 数据。
