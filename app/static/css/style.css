@@ -1023,3 +1023,84 @@ a {
         flex-wrap: wrap;
     }
 }
+
+/* ===== 截止日历模块 ===== */
+.calendar-summary { margin-bottom: 22px; }
+.calendar-panel { padding: 22px; }
+.calendar-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
+.calendar-toolbar h2 { margin: 0; font-size: 20px; color: #263449; }
+.calendar-toolbar p { margin: 7px 0 0; color: #98a4b4; font-size: 12px; }
+.calendar-nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.calendar-alert { padding: 11px 14px; margin-bottom: 15px; border-radius: 8px; background: #fff4e8; color: #b66a16; font-size: 12px; }
+.calendar-scroll { overflow-x: auto; }
+.calendar-grid { min-width: 760px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid #edf0f5; border-left: 1px solid #edf0f5; }
+.calendar-weekday { padding: 12px 8px; text-align: center; background: #f8faff; color: #74839a; font-size: 12px; font-weight: bold; border-right: 1px solid #edf0f5; border-bottom: 1px solid #edf0f5; }
+.calendar-day { min-height: 132px; padding: 9px; background: #fff; border-right: 1px solid #edf0f5; border-bottom: 1px solid #edf0f5; }
+.calendar-day.outside-month { background: #fafbfd; }
+.calendar-day.outside-month .calendar-day-number { color: #c1c9d4; }
+.calendar-day.is-today { background: #f4f8ff; }
+.calendar-day-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.calendar-day-number { display: inline-flex; width: 25px; height: 25px; align-items: center; justify-content: center; border-radius: 50%; color: #52627a; font-size: 12px; }
+.calendar-day.is-today .calendar-day-number { background: #2563eb; color: #fff; font-weight: bold; }
+.calendar-day-count { color: #9aa5b5; font-size: 10px; }
+.calendar-day-events { display: flex; flex-direction: column; gap: 5px; }
+.calendar-event-form { margin: 0; }
+.calendar-event { width: 100%; display: flex; flex-direction: column; gap: 3px; padding: 6px 7px; border: 0; border-left: 3px solid #e6a23c; border-radius: 5px; background: #fff6e9; color: #95601c; text-align: left; cursor: pointer; }
+.calendar-event:hover { filter: brightness(.98); }
+.calendar-event.is-done { border-left-color: #39a66a; background: #edf9f1; color: #43805b; }
+.calendar-event-label { font-size: 10px; font-weight: bold; }
+.calendar-event-title { overflow: hidden; max-width: 100%; font-size: 10px; white-space: nowrap; text-overflow: ellipsis; }
+.calendar-more { padding-left: 5px; color: #8b98aa; font-size: 10px; }
+.calendar-legend { display: flex; flex-wrap: wrap; gap: 18px; padding-top: 16px; color: #8290a3; font-size: 11px; }
+.calendar-legend span, .status-breakdown span { display: inline-flex; align-items: center; gap: 7px; }
+.legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #e6a23c; }
+.legend-dot.pending { background: #e6a23c; }
+.legend-dot.completed { background: #39a66a; }
+.legend-dot.today { background: #2563eb; }
+.legend-dot.overdue { background: #dc5555; }
+.legend-dot.upcoming { background: #8b5cf6; }
+
+/* ===== 数据统计模块 ===== */
+.analytics-summary { margin-bottom: 22px; }
+.analytics-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 20px; }
+.analytics-panel { min-width: 0; }
+.analytics-total { color: #8290a3; font-size: 12px; white-space: nowrap; }
+.category-chart { display: flex; flex-direction: column; gap: 20px; padding-top: 25px; }
+.category-row-heading { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; font-size: 12px; }
+.category-row-heading strong { color: #42536d; }
+.category-row-heading span { color: #8996a8; white-space: nowrap; }
+.category-track, .completion-track { height: 9px; overflow: hidden; border-radius: 20px; background: #edf1f7; }
+.category-fill { height: 100%; min-width: 2px; border-radius: 20px; background: linear-gradient(90deg, #4d7ff0, #82a7fa); }
+.completion-overview { padding: 22px 0 18px; text-align: center; }
+.completion-rate { color: #2563eb; font-size: 42px; font-weight: bold; line-height: 1.2; }
+.completion-rate span { font-size: 22px; }
+.completion-overview p { margin: 6px 0 18px; color: #8996a8; font-size: 12px; }
+.completion-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #36a66c, #7acb9c); }
+.status-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 10px; padding-top: 18px; border-top: 1px solid #f0f2f6; }
+.status-breakdown > div { display: flex; justify-content: space-between; align-items: center; gap: 8px; color: #8290a3; font-size: 11px; }
+.status-breakdown strong { color: #34445c; font-size: 14px; }
+.analytics-deadlines { margin-bottom: 20px; }
+.analytics-deadline-list { margin-top: 12px; }
+.analytics-deadline-item { display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 15px 0; border-bottom: 1px solid #f0f2f6; }
+.analytics-deadline-item:last-child { border-bottom: 0; }
+.analytics-deadline-main { min-width: 0; }
+.analytics-deadline-main strong { display: block; overflow: hidden; color: #34445c; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.analytics-deadline-main p { margin: 6px 0 0; overflow: hidden; color: #9aa5b5; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.analytics-deadline-date { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; color: #74839a; font-size: 11px; }
+.deadline-state { font-size: 10px; }
+.deadline-state.overdue { color: #dc5555; }
+.deadline-state.today { color: #d58a2d; }
+.deadline-state.normal { color: #5680dc; }
+.analytics-empty { min-height: 210px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.analytics-empty.compact { min-height: 150px; }
+.analytics-empty h3 { margin: 12px 0 5px; color: #52627a; font-size: 13px; }
+.analytics-empty p { margin: 4px 0; color: #9aa5b5; font-size: 11px; }
+@media (max-width: 950px) { .analytics-grid { grid-template-columns: 1fr; } }
+@media (max-width: 700px) {
+    .calendar-toolbar { align-items: flex-start; flex-direction: column; }
+    .calendar-nav { width: 100%; }
+    .calendar-nav .btn { flex: 1; padding-left: 8px; padding-right: 8px; }
+    .calendar-panel { padding: 14px; }
+    .analytics-deadline-item { align-items: flex-start; }
+    .status-breakdown { grid-template-columns: 1fr; }
+}

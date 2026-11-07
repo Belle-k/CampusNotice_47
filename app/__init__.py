@@ -1,5 +1,6 @@
 
 import os
+import calendar as py_calendar
 from datetime import datetime, date, timedelta
 
 from flask import (
@@ -320,6 +321,10 @@ def create_app():
 
         flash("事项状态已更新。", "success")
 
+        if request.form.get("return_to") == "calendar":
+            month = request.form.get("month", "")
+            return redirect(url_for("calendar_page", month=month))
+
         return redirect(url_for("notices_page"))
 
     # 智能通知导入：上传文件并提取候选信息
@@ -448,24 +453,150 @@ def create_app():
         flash("文件超过 10 MB，请压缩文件或选择较小的文件。", "error")
         return redirect(url_for("import_page"))
 
-    # 截止日历页面（下一阶段开发）
+    # 截止日历：按月份展示所有截止事项，并支持直接切换完成状态
     @app.route("/calendar")
     def calendar_page():
-        return render_template(
-            "placeholder.html",
-            active_page="calendar",
-            page_title="截止日历",
-            page_description="集中查看报名、材料提交和活动截止时间。"
+        db = get_db()
+        today = date.today()
+        month_text = request.args.get("month", "")
+        try:
+            selected_month = datetime.strptime(month_text, "%Y-%m").date().replace(day=1)
+        except ValueError:
+            selected_month = today.replace(day=1)
+
+        next_month = (selected_month.replace(day=28) + timedelta(days=4)).replace(day=1)
+        month_end = next_month - timedelta(days=1)
+        previous_month = (selected_month - timedelta(days=1)).replace(day=1)
+
+        rows = db.execute("""
+            SELECT d.*, n.title, n.category
+            FROM notice_deadlines d
+            JOIN notices n ON d.notice_id = n.id
+            WHERE d.deadline_date BETWEEN ? AND ?
+            ORDER BY d.deadline_date ASC, d.id ASC
+        """, (selected_month.isoformat(), month_end.isoformat())).fetchall()
+
+        deadlines_by_date = {}
+        for row in rows:
+            item = dict(row)
+            deadlines_by_date.setdefault(item["deadline_date"], []).append(item)
+
+        calendar_weeks = []
+        for week in py_calendar.Calendar(firstweekday=0).monthdatescalendar(
+            selected_month.year, selected_month.month
+        ):
+            week_items = []
+            for current_day in week:
+                week_items.append({
+                    "date": current_day,
+                    "day": current_day.day,
+                    "in_month": current_day.month == selected_month.month,
+                    "is_today": current_day == today,
+                    "items": deadlines_by_date.get(current_day.isoformat(), [])
+                })
+            calendar_weeks.append(week_items)
+
+        month_total = len(rows)
+        month_completed = sum(1 for row in rows if row["status"] == 1)
+        month_pending = month_total - month_completed
+        month_overdue = sum(
+            1 for row in rows
+            if row["status"] == 0 and row["deadline_date"] < today.isoformat()
         )
 
-    # 数据统计页面（下一阶段开发）
+        return render_template(
+            "calendar.html",
+            active_page="calendar",
+            month_text=selected_month.strftime("%Y-%m"),
+            month_label=f"{selected_month.year}年{selected_month.month}月",
+            previous_month=previous_month.strftime("%Y-%m"),
+            next_month=next_month.strftime("%Y-%m"),
+            calendar_weeks=calendar_weeks,
+            month_total=month_total,
+            month_completed=month_completed,
+            month_pending=month_pending,
+            month_overdue=month_overdue
+        )
+
+    # 数据统计：直接汇总现有 SQLite 数据，不创建重复数据
     @app.route("/statistics")
     def statistics_page():
+        db = get_db()
+        today = date.today()
+        seven_days = (today + timedelta(days=7)).isoformat()
+
+        total_notices = db.execute(
+            "SELECT COUNT(*) FROM notices"
+        ).fetchone()[0]
+
+        deadline_summary = db.execute("""
+            SELECT COUNT(*) AS total,
+                   SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS pending,
+                   SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS completed
+            FROM notice_deadlines
+        """).fetchone()
+
+        deadline_total = deadline_summary["total"] or 0
+        pending_count = deadline_summary["pending"] or 0
+        completed_count = deadline_summary["completed"] or 0
+
+        overdue_count = db.execute("""
+            SELECT COUNT(*) FROM notice_deadlines
+            WHERE status = 0 AND deadline_date < ?
+        """, (today.isoformat(),)).fetchone()[0]
+        upcoming_count = db.execute("""
+            SELECT COUNT(*) FROM notice_deadlines
+            WHERE status = 0 AND deadline_date BETWEEN ? AND ?
+        """, (today.isoformat(), seven_days)).fetchone()[0]
+        completion_rate = round(completed_count / deadline_total * 100, 1) if deadline_total else 0
+
+        category_rows = db.execute("""
+            SELECT category, COUNT(*) AS count
+            FROM notices
+            GROUP BY category
+            ORDER BY count DESC, category ASC
+        """).fetchall()
+        categories = [{
+            "name": row["category"] or "其他",
+            "count": row["count"],
+            "percentage": round(row["count"] / total_notices * 100, 1) if total_notices else 0
+        } for row in category_rows]
+
+        recent_rows = db.execute("""
+            SELECT d.*, n.title, n.category
+            FROM notice_deadlines d
+            JOIN notices n ON d.notice_id = n.id
+            WHERE d.status = 0
+            ORDER BY d.deadline_date ASC, d.id ASC
+            LIMIT 8
+        """).fetchall()
+        deadline_items = []
+        for row in recent_rows:
+            item = dict(row)
+            days_left = (date.fromisoformat(item["deadline_date"]) - today).days
+            if days_left < 0:
+                item["time_label"] = f"已逾期 {abs(days_left)} 天"
+                item["time_state"] = "overdue"
+            elif days_left == 0:
+                item["time_label"] = "今天截止"
+                item["time_state"] = "today"
+            else:
+                item["time_label"] = f"还剩 {days_left} 天"
+                item["time_state"] = "normal"
+            deadline_items.append(item)
+
         return render_template(
-            "placeholder.html",
+            "statistics.html",
             active_page="statistics",
-            page_title="数据统计",
-            page_description="通过统计图表了解通知类别和事项处理情况。"
+            total_notices=total_notices,
+            deadline_total=deadline_total,
+            pending_count=pending_count,
+            completed_count=completed_count,
+            overdue_count=overdue_count,
+            upcoming_count=upcoming_count,
+            completion_rate=completion_rate,
+            categories=categories,
+            deadline_items=deadline_items
         )
 
     return app
