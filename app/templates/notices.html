@@ -1,0 +1,165 @@
+
+{% extends "base.html" %}
+
+{% block title %}通知管理 | CampusNotice{% endblock %}
+{% block page_heading %}通知管理{% endblock %}
+
+{% block content %}
+
+<div class="page-toolbar">
+    <div>
+        <h1>通知管理</h1>
+        <p>集中管理你的校园通知和重要时间节点</p>
+    </div>
+
+    <a href="{{ url_for('create_notice') }}"
+       class="btn btn-primary">
+        ＋ 新增通知
+    </a>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+{% endwith %}
+
+<form class="search-form" method="GET"
+      action="{{ url_for('notices_page') }}">
+
+    <input type="text"
+           name="q"
+           value="{{ keyword }}"
+           placeholder="搜索通知标题、类别或发布单位">
+
+    <button type="submit" class="btn btn-primary">搜索</button>
+
+    {% if keyword %}
+        <a href="{{ url_for('notices_page') }}"
+           class="btn btn-secondary">清除</a>
+    {% endif %}
+</form>
+
+<div class="notice-list">
+
+    {% if notices %}
+
+        {% for notice in notices %}
+
+        <article class="notice-card">
+
+            <div class="notice-card-head">
+
+                <div class="notice-title-area">
+
+                    <span class="category-badge">
+                        {{ notice.category }}
+                    </span>
+
+                    <h3>{{ notice.title }}</h3>
+
+                    <p class="notice-publisher">
+                        发布单位：{{ notice.publisher or '未填写' }}
+                    </p>
+
+                </div>
+
+                <div class="notice-actions">
+
+                    <a class="small-action"
+                       href="{{ url_for('edit_notice', notice_id=notice.id) }}">
+                        编辑
+                    </a>
+
+                    <form method="POST"
+                          action="{{ url_for('delete_notice', notice_id=notice.id) }}"
+                          onsubmit="return confirm('确定删除这条通知吗？')">
+
+                        <button type="submit" class="danger-button">
+                            删除
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+            <div class="notice-content">
+                {{ notice.content | truncate(180) }}
+            </div>
+
+            <div class="notice-meta">
+                创建时间：{{ notice.created_at }}
+                <span>共 {{ notice.deadline_count }} 个时间节点</span>
+                <span>待完成：{{ notice.pending_count }}</span>
+            </div>
+
+            <div class="deadline-section">
+
+                <strong>截止事项</strong>
+
+                {% if notice.deadlines %}
+
+                    <div class="deadline-list">
+
+                        {% for deadline in notice.deadlines %}
+
+                        <form method="POST"
+                              action="{{ url_for('toggle_deadline', deadline_id=deadline.id) }}">
+
+                            <button type="submit"
+                                    class="deadline-pill {% if deadline.status %}done{% endif %}">
+
+                                {{ '✓' if deadline.status else '○' }}
+
+                                {{ deadline.label }}
+
+                                · {{ deadline.deadline_date }}
+
+                            </button>
+
+                        </form>
+
+                        {% endfor %}
+
+                    </div>
+
+                    <small class="muted-text">
+                        点击时间节点可以切换完成状态
+                    </small>
+
+                {% else %}
+
+                    <p class="muted-text">暂未设置截止事项</p>
+
+                {% endif %}
+
+            </div>
+
+        </article>
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="empty-panel">
+
+            <div class="empty-icon">▤</div>
+
+            <h3>暂时没有找到通知</h3>
+
+            <p>添加第一条校园通知，开始使用 CampusNotice。</p>
+
+            <a href="{{ url_for('create_notice') }}"
+               class="btn btn-primary">
+                立即添加
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

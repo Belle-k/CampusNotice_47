@@ -649,3 +649,377 @@ a {
         flex-wrap: wrap;
     }
 }
+
+/* ===== 通知管理模块 ===== */
+
+.page-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 24px;
+}
+
+.page-toolbar h1 {
+    font-size: 23px;
+    margin: 0 0 8px;
+}
+
+.page-toolbar p {
+    font-size: 13px;
+    color: #8996a8;
+    margin: 0;
+}
+
+.btn-secondary {
+    background: #f0f3f8;
+    color: #53647d;
+}
+
+.search-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.search-form input {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 15px;
+    font-size: 13px;
+    outline: none;
+}
+
+.search-form input:focus,
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: #6392ed;
+}
+
+.notice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.notice-card {
+    background: white;
+    border: 1px solid #edf0f5;
+    border-radius: 13px;
+    padding: 22px;
+}
+
+.notice-card-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.notice-title-area h3 {
+    font-size: 17px;
+    margin: 12px 0 7px;
+    color: #263449;
+}
+
+.category-badge {
+    display: inline-block;
+    background: #eaf1ff;
+    color: #2563eb;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 11px;
+}
+
+.notice-publisher {
+    font-size: 12px;
+    color: #8996a8;
+    margin: 0;
+}
+
+.notice-actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.notice-actions form {
+    margin: 0;
+}
+
+.small-action,
+.danger-button {
+    font-size: 12px;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.small-action {
+    color: #2563eb;
+    padding-top: 5px;
+}
+
+.danger-button {
+    color: #dc5555;
+    padding-top: 5px;
+}
+
+.notice-content {
+    font-size: 13px;
+    line-height: 1.8;
+    color: #64748b;
+    margin: 17px 0;
+    white-space: pre-wrap;
+}
+
+.notice-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    border-top: 1px solid #f0f2f6;
+    border-bottom: 1px solid #f0f2f6;
+    padding: 12px 0;
+    color: #96a1b0;
+    font-size: 11px;
+}
+
+.deadline-section {
+    padding-top: 16px;
+}
+
+.deadline-section > strong {
+    font-size: 12px;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.deadline-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.deadline-list form {
+    margin: 0;
+}
+
+.deadline-pill {
+    border: 1px solid #dce7fb;
+    background: #f2f6ff;
+    color: #4774c6;
+    border-radius: 20px;
+    padding: 8px 12px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.deadline-pill.done {
+    background: #e9f8ef;
+    border-color: #c9ebd5;
+    color: #29965a;
+    text-decoration: line-through;
+}
+
+.muted-text {
+    font-size: 11px;
+    color: #9aa5b5;
+    margin-top: 10px;
+}
+
+.empty-panel {
+    background: white;
+    border-radius: 13px;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.empty-panel h3 {
+    font-size: 17px;
+    margin: 18px 0 8px;
+}
+
+.empty-panel p {
+    font-size: 12px;
+    color: #94a0b1;
+    margin-bottom: 20px;
+}
+
+
+/* ===== 通知编辑表单 ===== */
+
+.form-panel {
+    background: white;
+    border: 1px solid #edf0f5;
+    border-radius: 13px;
+    padding: 28px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    margin-bottom: 22px;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #34445c;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+}
+
+.form-group textarea {
+    resize: vertical;
+    line-height: 1.8;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.deadline-editor {
+    background: #f8faff;
+    border: 1px solid #eaf0fa;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.deadline-editor-heading h3 {
+    font-size: 15px;
+    margin: 0 0 7px;
+}
+
+.deadline-editor-heading p {
+    font-size: 12px;
+    color: #8996a8;
+    margin-bottom: 18px;
+}
+
+.deadline-input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 9px;
+    margin-bottom: 12px;
+}
+
+.deadline-input-row input {
+    min-width: 0;
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    padding: 10px;
+    font-size: 12px;
+}
+
+.remove-deadline {
+    border: none;
+    background: none;
+    color: #dc5555;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.flash {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 17px;
+}
+
+.flash.success {
+    background: #eaf8ef;
+    color: #25834c;
+}
+
+.flash.error {
+    background: #fff0f0;
+    color: #c74444;
+}
+
+
+/* ===== 首页真实数据展示 ===== */
+
+.dashboard-list {
+    margin-top: 20px;
+}
+
+.dashboard-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 0;
+    border-bottom: 1px solid #f0f2f6;
+}
+
+.dashboard-list-item:last-child {
+    border-bottom: none;
+}
+
+.dashboard-list-item strong {
+    font-size: 12px;
+    color: #34445c;
+}
+
+.dashboard-list-item p {
+    font-size: 11px;
+    color: #9aa5b5;
+    margin: 6px 0 0;
+}
+
+.dashboard-date {
+    color: #7b8ba4;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .deadline-input-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .notice-card-head {
+        flex-direction: column;
+    }
+
+    .page-toolbar {
+        align-items: flex-start;
+    }
+
+    .form-panel {
+        padding: 17px;
+    }
+
+    .search-form {
+        flex-wrap: wrap;
+    }
+}

@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+instance/
+*.db
+__pycache__/
+*.py[cod]
