@@ -1,17 +1,11 @@
 
 {% extends "base.html" %}
 
-{% block title %}
-首页概览 | CampusNotice
-{% endblock %}
-
-{% block page_heading %}
-首页概览
-{% endblock %}
+{% block title %}首页概览 | CampusNotice{% endblock %}
+{% block page_heading %}首页概览{% endblock %}
 
 {% block content %}
 
-<!-- 欢迎区域 -->
 <section class="welcome-panel">
 
     <div class="welcome-copy">
@@ -20,15 +14,13 @@
 
         <h1>你好，欢迎使用 CampusNotice</h1>
 
-        <p>
-            把分散的校园通知整理成清晰、可管理的个人事项。
-        </p>
+        <p>把分散的校园通知整理成清晰、可管理的个人事项。</p>
 
         <div class="welcome-actions">
 
-            <a href="{{ url_for('import_page') }}"
+            <a href="{{ url_for('create_notice') }}"
                class="btn btn-primary">
-                ＋ 导入一条通知
+                ＋ 新增通知
             </a>
 
             <a href="{{ url_for('notices_page') }}"
@@ -41,142 +33,157 @@
     </div>
 
     <div class="welcome-decoration">
-        <div class="decoration-circle">
-            CN
-        </div>
+        <div class="decoration-circle">CN</div>
     </div>
 
 </section>
 
-
-<!-- 数据概览 -->
 <section class="section-heading">
 
     <div>
         <h2>数据概览</h2>
-        <p>快速了解你的校园通知和待办情况</p>
+        <p>实时了解校园通知和待办情况</p>
     </div>
 
     <span class="version-label">V1.0</span>
 
 </section>
 
-
 <div class="stats-grid">
 
     <article class="stat-card">
-
         <div class="stat-top">
             <div class="stat-icon blue">▤</div>
             <span class="stat-tag">全部</span>
         </div>
 
         <p class="stat-label">通知总数</p>
-        <div class="stat-number">0</div>
+        <div class="stat-number">{{ total_notices }}</div>
         <p class="stat-foot">已收集的校园通知</p>
-
     </article>
 
-
     <article class="stat-card">
-
         <div class="stat-top">
             <div class="stat-icon orange">◷</div>
             <span class="stat-tag">进行中</span>
         </div>
 
         <p class="stat-label">待处理事项</p>
-        <div class="stat-number">0</div>
-        <p class="stat-foot">等待完成的任务</p>
-
+        <div class="stat-number">{{ pending_deadlines }}</div>
+        <p class="stat-foot">尚未完成的截止事项</p>
     </article>
 
-
     <article class="stat-card">
-
         <div class="stat-top">
             <div class="stat-icon purple">▦</div>
-            <span class="stat-tag">提醒</span>
+            <span class="stat-tag">未来7天</span>
         </div>
 
         <p class="stat-label">即将截止</p>
-        <div class="stat-number">0</div>
-        <p class="stat-foot">需要关注的事项</p>
-
+        <div class="stat-number">{{ upcoming_count }}</div>
+        <p class="stat-foot">未来7天内需要关注的事项</p>
     </article>
 
 </div>
 
-
-<!-- 下方内容 -->
 <div class="dashboard-grid">
 
     <section class="panel">
 
         <div class="panel-header">
-
             <div>
                 <h2>最近通知</h2>
-                <p>最近导入或更新的校园通知</p>
+                <p>最近添加的校园通知</p>
             </div>
 
             <a href="{{ url_for('notices_page') }}"
                class="text-link">
                 查看全部 →
             </a>
-
         </div>
 
+        {% if recent_notices %}
 
-        <div class="empty-state">
+            <div class="dashboard-list">
 
-            <div class="empty-icon">▤</div>
+                {% for notice in recent_notices %}
 
-            <h3>还没有通知</h3>
+                <div class="dashboard-list-item">
+                    <div>
+                        <strong>{{ notice.title }}</strong>
+                        <p>{{ notice.category }} · {{ notice.publisher or '未填写发布单位' }}</p>
+                    </div>
 
-            <p>
-                导入第一条校园通知，开始管理重要信息。
-            </p>
+                    <span class="dashboard-date">
+                        {{ notice.created_at[:10] }}
+                    </span>
+                </div>
 
-            <a href="{{ url_for('import_page') }}"
-               class="btn btn-primary btn-small">
-                立即导入
-            </a>
+                {% endfor %}
 
-        </div>
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+                <div class="empty-icon">▤</div>
+                <h3>还没有通知</h3>
+                <p>添加第一条校园通知，开始管理重要信息。</p>
+
+                <a href="{{ url_for('create_notice') }}"
+                   class="btn btn-primary btn-small">
+                    立即添加
+                </a>
+            </div>
+
+        {% endif %}
 
     </section>
-
 
     <section class="panel">
 
         <div class="panel-header">
-
             <div>
                 <h2>近期截止</h2>
-                <p>即将到来的重要时间节点</p>
+                <p>尚未完成的时间节点</p>
             </div>
 
-            <a href="{{ url_for('calendar_page') }}"
+            <a href="{{ url_for('notices_page') }}"
                class="text-link">
-                查看日历 →
+                管理事项 →
             </a>
-
         </div>
 
+        {% if upcoming_items %}
 
-        <div class="timeline-empty">
+            <div class="dashboard-list">
 
-            <div class="calendar-icon">▦</div>
+                {% for item in upcoming_items %}
 
-            <h3>暂无待办截止事项</h3>
+                <div class="dashboard-list-item">
+                    <div>
+                        <strong>{{ item.label }}</strong>
+                        <p>{{ item.title }}</p>
+                    </div>
 
-            <p>
-                导入通知并确认日期后，
-                相关事项将在这里展示。
-            </p>
+                    <span class="dashboard-date">
+                        {{ item.deadline_date }}
+                    </span>
+                </div>
 
-        </div>
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+                <div class="calendar-icon">▦</div>
+                <h3>暂无近期截止事项</h3>
+                <p>添加通知并设置截止日期后，这里会自动更新。</p>
+            </div>
+
+        {% endif %}
 
     </section>
 
