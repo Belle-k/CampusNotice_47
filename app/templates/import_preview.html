@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}确认导入信息 | CampusNotice{% endblock %}
+{% block page_heading %}确认导入信息{% endblock %}
+
+{% block content %}
+<style>
+.preview-wrap{max-width:1050px;margin:0 auto}
+.preview-heading{margin-bottom:20px}
+.preview-heading h1{font-size:26px;color:#18345b;margin:0 0 8px}
+.preview-heading p{color:#8294ad;margin:0;line-height:1.7}
+.preview-card{background:#fff;border:1px solid #e8edf5;border-radius:16px;padding:25px;margin-bottom:18px;box-shadow:0 5px 18px rgba(28,58,100,.035)}
+.preview-card h2{font-size:18px;color:#203b60;margin:0 0 18px}
+.preview-alert{padding:12px 16px;border-radius:9px;margin:0 0 14px;font-size:14px}
+.preview-alert.error{background:#fff0f0;color:#bd4141}
+.preview-alert.success{background:#eaf8f0;color:#198754}
+.preview-note{background:#fff8e8;color:#8b6821;border:1px solid #f4e5bd;border-radius:10px;padding:12px 15px;font-size:13px;line-height:1.7;margin-bottom:18px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-field{display:flex;flex-direction:column;gap:7px;margin-bottom:15px}
+.form-field.full{grid-column:1/-1}
+.form-field label{font-size:14px;font-weight:600;color:#435d7d}
+.form-field input,.form-field select,.form-field textarea{width:100%;box-sizing:border-box;border:1px solid #dce5f1;border-radius:9px;padding:11px 12px;font:inherit;color:#29415f;background:#fff}
+.form-field textarea{min-height:170px;resize:vertical;line-height:1.7}
+.deadline-row{display:grid;grid-template-columns:1.1fr 1fr 1.6fr auto;gap:10px;align-items:center;margin-bottom:10px}
+.deadline-row input{min-width:0;box-sizing:border-box;width:100%;border:1px solid #dce5f1;border-radius:8px;padding:10px}
+.small-button{border:1px solid #d5e1f3;background:#f5f8ff;color:#2864d8;border-radius:8px;padding:9px 13px;cursor:pointer}
+.remove-button{border:1px solid #f0d7d7;background:#fff7f7;color:#bd5555;border-radius:8px;padding:9px 11px;cursor:pointer}
+.primary-button{border:0;border-radius:9px;background:#2864e8;color:#fff;padding:12px 25px;font-size:15px;cursor:pointer}
+.secondary-button{display:inline-block;text-decoration:none;border:1px solid #dce5f1;border-radius:9px;color:#526b8c;padding:11px 18px;margin-left:8px}
+.file-name{font-size:13px;color:#8294ad;margin-bottom:16px}
+@media(max-width:760px){.preview-card{padding:18px}.form-grid{grid-template-columns:1fr}.deadline-row{grid-template-columns:1fr 1fr}.deadline-row .deadline-note{grid-column:1/-1}.deadline-row button{justify-self:start}}
+</style>
+
+<div class="preview-wrap">
+    <div class="preview-heading">
+        <h1>核对识别结果</h1>
+        <p>系统已完成初步提取。请检查并修改以下信息，确认后才会保存到通知管理。</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="preview-alert {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <div class="preview-card">
+        <div class="file-name">来源文件：{{ source_filename }}</div>
+        <div class="preview-note">
+            请特别核对日期：自动识别结果可能包含通知发布日期、活动日期或截止日期。你可以修改、删除或添加时间节点。
+        </div>
+
+        <form method="post" action="{{ url_for('confirm_import') }}">
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="title">通知标题 *</label>
+                    <input id="title" name="title" value="{{ notice.title }}" maxlength="100" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="category">通知类别</label>
+                    <select id="category" name="category">
+                        {% for option in ["活动", "竞赛", "学习", "奖助", "就业", "其他"] %}
+                        <option value="{{ option }}" {% if notice.category == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-field full">
+                    <label for="publisher">发布单位</label>
+                    <input id="publisher" name="publisher" value="{{ notice.publisher }}" placeholder="例如：校团委、教务处">
+                </div>
+
+                <div class="form-field full">
+                    <label for="content">通知正文 *</label>
+                    <textarea id="content" name="content" required>{{ notice.content }}</textarea>
+                </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:22px 0 14px;">
+                <h2 style="margin:0;">识别到的时间节点</h2>
+                <button class="small-button" type="button" onclick="addDeadlineRow()">＋ 添加时间节点</button>
+            </div>
+
+            <div id="deadline-list">
+                {% if notice.deadlines %}
+                    {% for item in notice.deadlines %}
+                    <div class="deadline-row">
+                        <input name="deadline_label[]" value="{{ item.label }}" placeholder="事项名称">
+                        <input name="deadline_date[]" type="date" value="{{ item.deadline_date }}">
+                        <input class="deadline-note" name="deadline_note[]" value="{{ item.note }}" placeholder="备注或原文依据">
+                        <button class="remove-button" type="button" onclick="removeDeadlineRow(this)">删除</button>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="deadline-row">
+                        <input name="deadline_label[]" placeholder="事项名称，例如：报名截止">
+                        <input name="deadline_date[]" type="date">
+                        <input class="deadline-note" name="deadline_note[]" placeholder="备注或原文依据">
+                        <button class="remove-button" type="button" onclick="removeDeadlineRow(this)">删除</button>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div style="margin-top:25px;">
+                <button class="primary-button" type="submit">确认并保存通知</button>
+                <a class="secondary-button" href="{{ url_for('import_page') }}">重新上传</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function addDeadlineRow() {
+    const list = document.getElementById("deadline-list");
+    const row = document.createElement("div");
+    row.className = "deadline-row";
+    row.innerHTML = `
+        <input name="deadline_label[]" placeholder="事项名称，例如：报名截止">
+        <input name="deadline_date[]" type="date">
+        <input class="deadline-note" name="deadline_note[]" placeholder="备注或原文依据">
+        <button class="remove-button" type="button" onclick="removeDeadlineRow(this)">删除</button>
+    `;
+    list.appendChild(row);
+}
+function removeDeadlineRow(button) {
+    const list = document.getElementById("deadline-list");
+    const rows = list.querySelectorAll(".deadline-row");
+    if (rows.length === 1) {
+        rows[0].querySelectorAll("input").forEach(input => input.value = "");
+        return;
+    }
+    button.closest(".deadline-row").remove();
+}
+</script>
+{% endblock %}
