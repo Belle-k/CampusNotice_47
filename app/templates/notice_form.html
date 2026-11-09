@@ -1,0 +1,202 @@
+
+{% extends "base.html" %}
+
+{% block title %}
+{{ '编辑通知' if notice else '新增通知' }} | CampusNotice
+{% endblock %}
+
+{% block page_heading %}
+{{ '编辑通知' if notice else '新增通知' }}
+{% endblock %}
+
+{% block content %}
+
+<div class="page-toolbar">
+    <div>
+        <h1>{{ '编辑通知' if notice else '新增校园通知' }}</h1>
+        <p>填写通知信息，并设置一个或多个重要时间节点。</p>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+{% endwith %}
+
+<form method="POST" class="form-panel">
+
+    <div class="form-group">
+        <label>通知标题 *</label>
+        <input type="text"
+               name="title"
+               value="{{ notice.title if notice else '' }}"
+               placeholder="例如：大学生创新创业竞赛报名通知"
+               required>
+    </div>
+
+    <div class="form-grid">
+
+        <div class="form-group">
+            <label>通知类别 *</label>
+
+            {% set selected_category = notice.category if notice else '学习' %}
+
+            <select name="category">
+
+                {% for category in ['学习', '竞赛', '活动', '奖助', '就业', '其他'] %}
+
+                    <option value="{{ category }}"
+                        {% if selected_category == category %}selected{% endif %}>
+                        {{ category }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>发布单位</label>
+
+            <input type="text"
+                   name="publisher"
+                   value="{{ notice.publisher if notice else '' }}"
+                   placeholder="例如：校团委、教务处">
+        </div>
+
+    </div>
+
+    <div class="form-group">
+        <label>通知正文 *</label>
+
+        <textarea name="content"
+                  rows="6"
+                  placeholder="填写通知的主要内容..."
+                  required>{{ notice.content if notice else '' }}</textarea>
+    </div>
+
+    <div class="deadline-editor">
+
+        <div class="deadline-editor-heading">
+            <div>
+                <h3>重要时间节点</h3>
+                <p>一条通知可以设置多个截止事项。</p>
+            </div>
+        </div>
+
+        <div id="deadline-list">
+
+            {% if deadlines %}
+
+                {% for item in deadlines %}
+
+                <div class="deadline-input-row">
+
+                    <input type="text"
+                           name="deadline_label[]"
+                           value="{{ item.label }}"
+                           placeholder="事项名称">
+
+                    <input type="date"
+                           name="deadline_date[]"
+                           value="{{ item.deadline_date }}">
+
+                    <input type="text"
+                           name="deadline_note[]"
+                           value="{{ item.note }}"
+                           placeholder="备注">
+
+                    <button type="button"
+                            class="remove-deadline"
+                            onclick="this.parentElement.remove()">
+                        删除
+                    </button>
+
+                </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="deadline-input-row">
+
+                    <input type="text"
+                           name="deadline_label[]"
+                           placeholder="例如：报名截止">
+
+                    <input type="date"
+                           name="deadline_date[]">
+
+                    <input type="text"
+                           name="deadline_note[]"
+                           placeholder="备注">
+
+                    <button type="button"
+                            class="remove-deadline"
+                            onclick="this.parentElement.remove()">
+                        删除
+                    </button>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        <button type="button"
+                class="btn btn-secondary"
+                onclick="addDeadlineRow()">
+            ＋ 添加时间节点
+        </button>
+
+    </div>
+
+    <div class="form-actions">
+
+        <a href="{{ url_for('notices_page') }}"
+           class="btn btn-secondary">
+            取消
+        </a>
+
+        <button type="submit" class="btn btn-primary">
+            保存通知
+        </button>
+
+    </div>
+
+</form>
+
+<script>
+function addDeadlineRow() {
+
+    const container = document.getElementById("deadline-list");
+
+    const row = document.createElement("div");
+
+    row.className = "deadline-input-row";
+
+    row.innerHTML = `
+        <input type="text"
+               name="deadline_label[]"
+               placeholder="例如：材料提交截止">
+
+        <input type="date"
+               name="deadline_date[]">
+
+        <input type="text"
+               name="deadline_note[]"
+               placeholder="备注">
+
+        <button type="button"
+                class="remove-deadline"
+                onclick="this.parentElement.remove()">
+            删除
+        </button>
+    `;
+
+    container.appendChild(row);
+}
+</script>
+
+{% endblock %}

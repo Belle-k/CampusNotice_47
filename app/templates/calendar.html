@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}截止日历 | CampusNotice{% endblock %}
+{% block page_heading %}截止日历{% endblock %}
+{% block content %}
+<section class="page-toolbar">
+    <div><h1>截止日历</h1><p>按月份查看校园通知中的报名、材料提交和活动时间节点。</p></div>
+    <a href="{{ url_for('create_notice') }}" class="btn btn-primary">＋ 新增通知</a>
+</section>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}
+{% endwith %}
+<section class="stats-grid calendar-summary">
+    <div class="stat-card"><div class="stat-top"><span class="stat-icon blue">▦</span><span class="stat-tag">当前月份</span></div><div class="stat-label">截止事项总数</div><div class="stat-number">{{ month_total }}</div><p class="stat-foot">{{ month_label }}安排的全部事项</p></div>
+    <div class="stat-card"><div class="stat-top"><span class="stat-icon orange">◷</span><span class="stat-tag">尚未完成</span></div><div class="stat-label">待处理事项</div><div class="stat-number">{{ month_pending }}</div><p class="stat-foot">记得及时完成相关任务</p></div>
+    <div class="stat-card"><div class="stat-top"><span class="stat-icon purple">✓</span><span class="stat-tag">已完成</span></div><div class="stat-label">已完成事项</div><div class="stat-number">{{ month_completed }}</div><p class="stat-foot">本月已完成的时间节点</p></div>
+</section>
+<section class="panel calendar-panel">
+    <div class="calendar-toolbar">
+        <div><h2>{{ month_label }}</h2><p>点击日期事项可切换完成状态</p></div>
+        <div class="calendar-nav">
+            <a class="btn btn-secondary btn-small" href="{{ url_for('calendar_page', month=previous_month) }}">‹ 上个月</a>
+            <a class="btn btn-secondary btn-small" href="{{ url_for('calendar_page') }}">回到本月</a>
+            <a class="btn btn-secondary btn-small" href="{{ url_for('calendar_page', month=next_month) }}">下个月 ›</a>
+        </div>
+    </div>
+    {% if month_overdue %}<div class="calendar-alert">本月有 {{ month_overdue }} 项待办已超过截止日期，请及时处理。</div>{% endif %}
+    <div class="calendar-scroll"><div class="calendar-grid">
+        {% for weekday in ['周一', '周二', '周三', '周四', '周五', '周六', '周日'] %}<div class="calendar-weekday">{{ weekday }}</div>{% endfor %}
+        {% for week in calendar_weeks %}
+            {% for day in week %}
+                <div class="calendar-day {% if not day['in_month'] %}outside-month{% endif %} {% if day['is_today'] %}is-today{% endif %}">
+                    <div class="calendar-day-heading"><span class="calendar-day-number">{{ day['day'] }}</span>{% if day['items'] %}<span class="calendar-day-count">{{ day['items']|length }}项</span>{% endif %}</div>
+                    <div class="calendar-day-events">
+                        {% for item in day['items'][:3] %}
+                            <form method="POST" action="{{ url_for('toggle_deadline', deadline_id=item['id']) }}" class="calendar-event-form">
+                                <input type="hidden" name="return_to" value="calendar"><input type="hidden" name="month" value="{{ month_text }}">
+                                <button type="submit" class="calendar-event {% if item['status'] == 1 %}is-done{% endif %}" title="点击切换完成状态：{{ item['label'] }}"><span class="calendar-event-label">{{ item['label'] }}</span><span class="calendar-event-title">{{ item['title'] }}</span></button>
+                            </form>
+                        {% endfor %}
+                        {% if day['items']|length > 3 %}<span class="calendar-more">还有 {{ day['items']|length - 3 }} 项</span>{% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div></div>
+    <div class="calendar-legend"><span><i class="legend-dot pending"></i>待处理</span><span><i class="legend-dot completed"></i>已完成</span><span><i class="legend-dot today"></i>今天</span></div>
+</section>
+{% endblock %}

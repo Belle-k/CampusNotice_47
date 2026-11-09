@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}数据统计 | CampusNotice{% endblock %}
+{% block page_heading %}数据统计{% endblock %}
+{% block content %}
+<section class="page-toolbar">
+    <div><h1>数据统计</h1><p>通过图表了解通知类别、截止事项和个人任务完成情况。</p></div>
+    <a href="{{ url_for('notices_page') }}" class="btn btn-primary">查看全部通知</a>
+</section>
+<section class="stats-grid analytics-summary">
+    <div class="stat-card"><div class="stat-top"><span class="stat-icon blue">▤</span><span class="stat-tag">全部</span></div><div class="stat-label">通知总数</div><div class="stat-number">{{ total_notices }}</div><p class="stat-foot">已收集的校园通知</p></div>
+    <div class="stat-card"><div class="stat-top"><span class="stat-icon orange">◷</span><span class="stat-tag">待处理</span></div><div class="stat-label">待办事项</div><div class="stat-number">{{ pending_count }}</div><p class="stat-foot">其中 {{ overdue_count }} 项已经逾期</p></div>
+    <div class="stat-card"><div class="stat-top"><span class="stat-icon purple">✓</span><span class="stat-tag">已完成</span></div><div class="stat-label">已完成事项</div><div class="stat-number">{{ completed_count }}</div><p class="stat-foot">共 {{ deadline_total }} 个截止事项</p></div>
+</section>
+<section class="analytics-grid">
+    <div class="panel analytics-panel">
+        <div class="panel-header"><div><h2>通知类别分布</h2><p>不同类别通知的数量及占比</p></div><span class="analytics-total">{{ total_notices }} 条</span></div>
+        {% if categories %}
+            <div class="category-chart">{% for item in categories %}<div class="category-row"><div class="category-row-heading"><strong>{{ item.name }}</strong><span>{{ item.count }} 条 · {{ item.percentage }}%</span></div><div class="category-track"><div class="category-fill" style="width: {{ item.percentage }}%"></div></div></div>{% endfor %}</div>
+        {% else %}<div class="analytics-empty"><div class="empty-icon">▤</div><h3>暂无通知数据</h3><p>添加或导入通知后，这里会显示类别分布。</p></div>{% endif %}
+    </div>
+    <div class="panel analytics-panel">
+        <div class="panel-header"><div><h2>事项完成情况</h2><p>当前所有截止事项的处理状态</p></div><span class="analytics-total">{{ completion_rate }}%</span></div>
+        <div class="completion-overview"><div class="completion-rate">{{ completion_rate }}<span>%</span></div><p>总体完成率</p><div class="completion-track"><div class="completion-fill" style="width: {{ completion_rate }}%"></div></div></div>
+        <div class="status-breakdown">
+            <div><span><i class="legend-dot pending"></i>待处理</span><strong>{{ pending_count }}</strong></div>
+            <div><span><i class="legend-dot completed"></i>已完成</span><strong>{{ completed_count }}</strong></div>
+            <div><span><i class="legend-dot overdue"></i>已逾期（含在待办中）</span><strong>{{ overdue_count }}</strong></div>
+            <div><span><i class="legend-dot upcoming"></i>未来7天截止</span><strong>{{ upcoming_count }}</strong></div>
+        </div>
+    </div>
+</section>
+<section class="panel analytics-deadlines">
+    <div class="panel-header"><div><h2>待办截止事项</h2><p>按截止日期从近到远排列，优先关注逾期和即将截止的任务</p></div><a class="text-link" href="{{ url_for('calendar_page') }}">查看日历 →</a></div>
+    {% if deadline_items %}
+        <div class="analytics-deadline-list">{% for item in deadline_items %}<div class="analytics-deadline-item"><div class="analytics-deadline-main"><strong>{{ item.label }} · {{ item.title }}</strong><p>{{ item.category }}{% if item.note %} · {{ item.note }}{% endif %}</p></div><div class="analytics-deadline-date"><span>{{ item.deadline_date }}</span><small class="deadline-state {{ item.time_state }}">{{ item.time_label }}</small></div></div>{% endfor %}</div>
+    {% else %}<div class="analytics-empty compact"><div class="empty-icon">✓</div><h3>目前没有待办事项</h3><p>所有截止事项均已完成，或尚未添加截止日期。</p></div>{% endif %}
+</section>
+{% endblock %}
